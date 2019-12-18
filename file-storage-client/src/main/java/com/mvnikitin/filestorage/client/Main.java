@@ -1,4 +1,4 @@
-package com.mvnikitin.file.storage.client;
+package com.mvnikitin.filestorage.client;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;

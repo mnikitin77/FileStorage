@@ -1,0 +1,10 @@
+C:\Users\Maksim\Documents\Projects\FileStorage\file-storage-common\src\main\java\com\mvnikitin\file\storage\common\command\DirCommand.java
+C:\Users\Maksim\Documents\Projects\FileStorage\file-storage-common\src\main\java\com\mvnikitin\file\storage\common\command\NotSupportedCommand.java
+C:\Users\Maksim\Documents\Projects\FileStorage\file-storage-common\src\main\java\com\mvnikitin\file\storage\common\message\AbstractNetworkMessage.java
+C:\Users\Maksim\Documents\Projects\FileStorage\file-storage-common\src\main\java\com\mvnikitin\file\storage\common\command\RenameCommand.java
+C:\Users\Maksim\Documents\Projects\FileStorage\file-storage-common\src\main\java\com\mvnikitin\file\storage\common\command\DeleteCommand.java
+C:\Users\Maksim\Documents\Projects\FileStorage\file-storage-common\src\main\java\com\mvnikitin\file\storage\common\message\CommandMessage.java
+C:\Users\Maksim\Documents\Projects\FileStorage\file-storage-common\src\main\java\com\mvnikitin\file\storage\common\utils\CommandProcessUtils.java
+C:\Users\Maksim\Documents\Projects\FileStorage\file-storage-common\src\main\java\com\mvnikitin\file\storage\common\command\FileAttributesCommand.java
+C:\Users\Maksim\Documents\Projects\FileStorage\file-storage-common\src\main\java\com\mvnikitin\file\storage\common\command\AbstractCommand.java
+C:\Users\Maksim\Documents\Projects\FileStorage\file-storage-common\src\main\java\com\mvnikitin\file\storage\common\command\FIleTransferCommand.java

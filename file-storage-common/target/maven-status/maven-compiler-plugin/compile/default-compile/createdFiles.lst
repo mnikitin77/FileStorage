@@ -1,0 +1,10 @@
+com\mvnikitin\file\storage\common\message\AbstractNetworkMessage.class
+com\mvnikitin\file\storage\common\command\RenameCommand.class
+com\mvnikitin\file\storage\common\command\FileAttributesCommand.class
+com\mvnikitin\file\storage\common\message\CommandMessage.class
+com\mvnikitin\file\storage\common\command\DeleteCommand.class
+com\mvnikitin\file\storage\common\command\DirCommand.class
+com\mvnikitin\file\storage\common\command\AbstractCommand.class
+com\mvnikitin\file\storage\common\command\FIleTransferCommand.class
+com\mvnikitin\file\storage\common\command\NotSupportedCommand.class
+com\mvnikitin\file\storage\common\utils\CommandProcessUtils.class

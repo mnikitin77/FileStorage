@@ -12,10 +12,19 @@
     <modules>
         <module>file-storage-client</module>
         <module>file-storage-server</module>
+        <module>file-storage-common</module>
     </modules>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.43.Final</version>
+        </dependency>
+    </dependencies>
 </project>
