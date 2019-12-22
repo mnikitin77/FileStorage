@@ -1,5 +1,6 @@
 package com.mvnikitin.filestorage.common.utils;
 
+import com.mvnikitin.filestorage.common.message.AbstractNetworkMessage;
 import com.mvnikitin.filestorage.common.message.file.*;
 
 import java.io.IOException;
@@ -12,41 +13,46 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.function.BiConsumer;
 
-public class CommandProcessUtils {
+public class FileCommandProcessUtils {
 
-    private static Map<String, BiConsumer<FileAbstractCommand, String>>
+    private static Map<
+            String,
+            BiConsumer<FileAbstractCommand, FileProcessConfig>>
+
             executors = new HashMap<>();
+
     static {
         executors.put(FileDirCommand.class.getName(),
-                CommandProcessUtils.createDirExecutor());
+                FileCommandProcessUtils.createDirExecutor());
         executors.put(FileInfoCommand.class.getName(),
-                CommandProcessUtils.createAttrsExecutor());
+                FileCommandProcessUtils.createAttrsExecutor());
         executors.put(FIleTransferCommand.class.getName(),
-                CommandProcessUtils.createFileTransferExecutor());
+                FileCommandProcessUtils.createFileTransferExecutor());
         executors.put(FileDeleteCommand.class.getName(),
-                CommandProcessUtils.createDeleteExecutor());
+                FileCommandProcessUtils.createDeleteExecutor());
         executors.put(FileRenameCommand.class.getName(),
-                CommandProcessUtils.createRenameExecutor());
+                FileCommandProcessUtils.createRenameExecutor());
     }
 
-    public static void execute(FileAbstractCommand cmd, String directoryPath) {
+    public static void execute(FileAbstractCommand cmd, FileProcessConfig config) {
         String key = cmd.getClass().getName();
         if (executors.containsKey(key)) {
-            executors.get(key).accept(cmd, directoryPath);
+            executors.get(key).accept(cmd, config);
         } else {
             throw new IllegalArgumentException();
         }
     }
 
-    private static BiConsumer<FileAbstractCommand, String> createDirExecutor() {
-        BiConsumer<FileAbstractCommand, String> biConsumer =
-                (cmd, directoryPath) -> {
+    private static BiConsumer<FileAbstractCommand, FileProcessConfig>
+    createDirExecutor() {
+        BiConsumer<FileAbstractCommand, FileProcessConfig> biConsumer =
+                (cmd, config) -> {
                     List<FileDirCommand.DirEntry> result = new ArrayList<>();
                     FileDirCommand dirCmd = (FileDirCommand) cmd;
 
                     try (DirectoryStream<Path> stream =
-                                 Files.newDirectoryStream(
-                                         Paths.get(directoryPath));) {
+                                 Files.newDirectoryStream(Paths.get(
+                                         config.getRootDirectory()));) {
                         for (Path p: stream) {
                             result.add(new FileDirCommand.DirEntry(p.getName(
                                     p.getNameCount() - 1).toString(),
@@ -63,16 +69,16 @@ public class CommandProcessUtils {
         return biConsumer;
     }
 
-    private static BiConsumer<FileAbstractCommand, String>
+    private static BiConsumer<FileAbstractCommand, FileProcessConfig>
     createAttrsExecutor() {
-        BiConsumer<FileAbstractCommand, String> biConsumer =
-                (cmd, directoryPath) -> {
+        BiConsumer<FileAbstractCommand, FileProcessConfig> biConsumer =
+                (cmd, config) -> {
             FileInfoCommand attrCmd = (FileInfoCommand) cmd;
             BasicFileAttributes attrs;
 
             try {
                 attrs = Files.readAttributes(Paths.get(
-                        directoryPath + attrCmd.getFileName()),
+                        config.getRootDirectory() + attrCmd.getFileName()),
                         BasicFileAttributes.class);
 
                 attrCmd.setCreationTime(new Date(attrs.creationTime().toMillis()));
@@ -90,20 +96,22 @@ public class CommandProcessUtils {
         return biConsumer;
     }
 
-    private static BiConsumer<FileAbstractCommand, String>
+    private static BiConsumer<FileAbstractCommand, FileProcessConfig>
     createFileTransferExecutor() {
-        BiConsumer<FileAbstractCommand, String> biConsumer =
-                (cmd, directoryPath) -> {
+        BiConsumer<FileAbstractCommand, FileProcessConfig> biConsumer =
+                (cmd, config) -> {
             FIleTransferCommand dwldCmd = (FIleTransferCommand) cmd;
 
             try {
                 if (dwldCmd.isUpload()  && !dwldCmd.isOnClient() ||
                         !dwldCmd.isUpload() && dwldCmd.isOnClient()) {
-                    CommandProcessUtils.receiveFileData(dwldCmd,
-                            directoryPath);
+                    FileCommandProcessUtils.receiveFileData(dwldCmd,
+                            config.getRootDirectory());
                 } else {
-                    dwldCmd.setData(CommandProcessUtils.provideFileData(
-                            dwldCmd, directoryPath));
+                    dwldCmd.setData(FileCommandProcessUtils.provideFileData(
+                            dwldCmd,
+                            config.getRootDirectory(),
+                            config.getLocalArray()));
                 }
 
                 dwldCmd.setResultCode(0);
@@ -116,22 +124,32 @@ public class CommandProcessUtils {
     }
 
     private static byte[] provideFileData(FIleTransferCommand cmd,
-                                          String directoryPath)
+                                          String directoryPath,
+                                          byte[] array)
             throws IOException {
-        byte[] data = null;
+
+        // array is a big pre-created array to handle big files
+        byte[] data = array;
 
         try (RandomAccessFile file = new RandomAccessFile(
                 directoryPath + cmd.getFileName(), "r");) {
+
+            int fileLength = (int)file.length();
+            if (fileLength < array.length) {
+                data = new byte[fileLength];
+            }
+
             if (cmd.getBlockSize() <= 0) {
-                if (file.length() > Integer.MAX_VALUE) {
+                if (fileLength > Integer.MAX_VALUE) {
                     throw new RuntimeException(
                             "The file is too large to download at once");
                 }
-                data = new byte[(int) file.length()];
-                file.readFully(data);
+                if (fileLength > data.length) {
+                    data = new byte[(int) file.length()];
+                }
+                file.readFully(data, 0, fileLength);
 
             } else {
-                long fileLength = file.length();
                 if (fileLength < cmd.getBlockSize()) {
                     cmd.setBlockSize((int) fileLength);
                 }
@@ -149,9 +167,10 @@ public class CommandProcessUtils {
                 int partLength = blockSize;
                 if (currentPart == cmd.getPartsCount()) {
                     partLength = (int) (fileLength - blockSize * (currentPart - 1));
+                    data = new byte[partLength];
                 }
 
-                data = new byte[partLength];
+//                data = new byte[partLength];
                 // Setting the poiter at the place we finished reading before.
                 file.seek(blockSize * (currentPart - 1));
                 file.read(data, 0, partLength);
@@ -164,8 +183,6 @@ public class CommandProcessUtils {
     private static void receiveFileData(FIleTransferCommand cmd,
                                         String directoryPath)
             throws IOException {
-
-        byte[] data = null;
 
         try (RandomAccessFile file = new RandomAccessFile(
                 directoryPath + cmd.getFileName(), "rw");) {
@@ -183,16 +200,16 @@ public class CommandProcessUtils {
         }
     }
 
-    private static BiConsumer<FileAbstractCommand, String>
+    private static BiConsumer<FileAbstractCommand, FileProcessConfig>
     createDeleteExecutor() {
-        BiConsumer<FileAbstractCommand, String> biConsumer =
-                (cmd, directoryPath) -> {
+        BiConsumer<FileAbstractCommand, FileProcessConfig> biConsumer =
+                (cmd, config) -> {
                     FileDeleteCommand delCmd = (FileDeleteCommand) cmd;
 
                     try {
                         delCmd.setDeleted(
                                 Files.deleteIfExists(
-                                        Paths.get(directoryPath +
+                                        Paths.get(config.getRootDirectory() +
                                                 delCmd.getFileName())));
                         delCmd.setResultCode(0);
                     } catch (IOException e) {
@@ -203,16 +220,16 @@ public class CommandProcessUtils {
         return biConsumer;
     }
 
-    private static BiConsumer<FileAbstractCommand, String>
+    private static BiConsumer<FileAbstractCommand, FileProcessConfig>
     createRenameExecutor() {
-        BiConsumer<FileAbstractCommand, String> biConsumer =
-                (cmd, directoryPath) -> {
+        BiConsumer<FileAbstractCommand, FileProcessConfig> biConsumer =
+                (cmd, config) -> {
                     FileRenameCommand renCmd = (FileRenameCommand) cmd;
 
                     try {
-                        Path source = Paths.get(directoryPath +
+                        Path source = Paths.get(config.getRootDirectory() +
                                 renCmd.getFrom());
-                        Path test = Files.move(source, source.resolveSibling(
+                        Files.move(source, source.resolveSibling(
                                 Paths.get(renCmd.getTo())));
                         renCmd.setResultCode(0);
                     } catch (IOException e) {
@@ -223,7 +240,7 @@ public class CommandProcessUtils {
         return biConsumer;
     }
 
-    private static void handleException(Exception e, FileAbstractCommand command) {
+    private static void handleException(Exception e, AbstractNetworkMessage command) {
         command.setResultCode(-1);
         command.setErrorText(e.getMessage() == null ?
                 "Error: " + e.toString() : e.getMessage());

@@ -1,5 +1,6 @@
 package com.mvnikitin.filestorage.server;
 
+import com.mvnikitin.filestorage.server.service.ConfigSettings;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -33,7 +34,8 @@ public class FileStorageServer {
                                             maxMessageSize,
                                             ClassResolvers.cacheDisabled(null)),
                                     new ObjectEncoder(),
-                                    new MessageHandler()
+                                    new ServiceMessageHandler(),
+                                    new FileMessageHandler()
                             );
                         }
                     })
@@ -44,12 +46,16 @@ public class FileStorageServer {
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
+
+        // Clean local application resources
+            ConfigSettings.clearResources();
         }
     }
 
     public static void main(String[] args) throws Exception {
         maxMessageSize = 1024 * 1024 *
                 ConfigSettings.getInstance().getMaxTransferFileSizeMB();
+
         try {
             if (args.length > 0) {
                 port = Integer.parseInt(args[0]);

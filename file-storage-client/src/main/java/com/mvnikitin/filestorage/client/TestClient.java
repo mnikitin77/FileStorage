@@ -4,20 +4,86 @@ import com.mvnikitin.filestorage.client.utils.NetworkManager;
 import com.mvnikitin.filestorage.common.message.AbstractNetworkMessage;
 import com.mvnikitin.filestorage.common.message.NotSupportedCommand;
 import com.mvnikitin.filestorage.common.message.file.*;
-import com.mvnikitin.filestorage.common.utils.CommandProcessUtils;
+import com.mvnikitin.filestorage.common.message.service.FileServerConfigCommand;
+import com.mvnikitin.filestorage.common.message.service.LogoffCommand;
+import com.mvnikitin.filestorage.common.message.service.LogonCommand;
+import com.mvnikitin.filestorage.common.message.service.RegisterCommand;
+import com.mvnikitin.filestorage.common.utils.FileCommandProcessUtils;
+import com.mvnikitin.filestorage.common.utils.FileProcessConfig;
 
 import java.io.IOException;
 import java.util.List;
 
-public class TestClient{
+public class TestClient implements FileProcessConfig {
     private static final String DEFAULT_PATH = "client_storage/";
+
+    private byte[] localArray;
+    private int blockSize;
+
+    public TestClient() throws IOException, ClassNotFoundException {
+        NetworkManager.start("localhost", 8189);
+
+        // Get some of the Server config parameters
+        AbstractNetworkMessage msg = new FileServerConfigCommand();
+        NetworkManager.sendMsg(msg);
+        msg = NetworkManager.readObject();
+
+        blockSize = ((FileServerConfigCommand)msg).getBlockSize();
+        localArray = new byte[blockSize];
+    }
+
+    @Override
+    public String getRootDirectory() {
+        return DEFAULT_PATH;
+    }
+
+    @Override
+    public byte[] getLocalArray() {
+        return localArray;
+    }
+
+    @Override
+    public int getBlockSize() {
+        return blockSize;
+    }
 
     public static void main(String[] args)
             throws IOException, ClassNotFoundException {
-        NetworkManager.start("localhost", 8189);
+
+        TestClient me = new TestClient();
+
+        AbstractNetworkMessage msg = null;
+
+    // Register a new user
+        msg = new RegisterCommand("user", "Qwerty1".hashCode());
+        NetworkManager.sendMsg(msg);
+        msg = NetworkManager.readObject();
+        System.out.println("Logon, user: " + ((RegisterCommand)msg).getUsername() +
+                ", password: " + ((RegisterCommand)msg).getPassword());
+        System.out.println("Result code: " + msg.getResultCode() + ", "
+                + msg.getErrorText());
+
+    // Register the same user once again
+        msg = new RegisterCommand("user", "Qwerty1".hashCode());
+        NetworkManager.sendMsg(msg);
+        msg = NetworkManager.readObject();
+        System.out.println("Logon, user: " + ((RegisterCommand)msg).getUsername() +
+                ", password: " + ((RegisterCommand)msg).getPassword());
+        System.out.println("Result code: " + msg.getResultCode() + ", "
+                + msg.getErrorText());
+
+    // Logging on a user
+        msg = new LogonCommand("test", 3556498);
+//        msg = new LogonCommand("test1", 3556498);
+        NetworkManager.sendMsg(msg);
+        msg = NetworkManager.readObject();
+        System.out.println("Logon, user: " + ((LogonCommand)msg).getUsername() +
+                ", password: " + ((LogonCommand)msg).getPassword());
+        System.out.println("Result code: " + msg.getResultCode() + ", "
+                + msg.getErrorText());
 
     // Receive the list of files and directories.
-        AbstractNetworkMessage msg = new FileDirCommand();
+        msg = new FileDirCommand();
         NetworkManager.sendMsg(msg);
         msg = NetworkManager.readObject();
         System.out.println("Command UID: " + msg.getRqUID());
@@ -70,10 +136,10 @@ public class TestClient{
         NetworkManager.sendMsg(msg);
         msg = NetworkManager.readObject();
         ((FIleTransferCommand)msg).setIsOnClient(true);
-        CommandProcessUtils.execute((FileAbstractCommand) msg, DEFAULT_PATH);
+        FileCommandProcessUtils.execute((FileAbstractCommand) msg, me);
 
     // Download a file by parts from the Server to the Client
-        msg = new FIleTransferCommand("2.txt", false, 16);
+        msg = new FIleTransferCommand("2.txt", false, me.getBlockSize());
 //        msg = new FIleTransferCommand("2.txt", false, 1024 * 1024);
 
         boolean isComplete = false;
@@ -86,8 +152,8 @@ public class TestClient{
             System.out.println("File " + dwldCmd.getFileName() + ": part " +
                     dwldCmd.getCurrentPartNumber() + " of " +
                     dwldCmd.getPartsCount() + " is downloaded. " +
-                    dwldCmd.getData().length + " bytes transferred.");
-            CommandProcessUtils.execute(dwldCmd, DEFAULT_PATH);
+                    dwldCmd.getData().length + " bytes transfered.");
+            FileCommandProcessUtils.execute(dwldCmd, me);
             if (dwldCmd.getCurrentPartNumber() == dwldCmd.getPartsCount()) {
                 isComplete = true;
                 System.out.println("File " + dwldCmd.getFileName() +
@@ -96,12 +162,12 @@ public class TestClient{
         }
 
     // Upload a file by parts from the Client to the Server.
-        msg = new FIleTransferCommand("3.txt", true, 64);
-//        msg = new FIleTransferCommand("3.txt", true, 1024 * 1024);
+        msg = new FIleTransferCommand("3.txt", true, me.getBlockSize());
+//        msg = new FIleTransferCommand("MOV_0546.mp4", true, me.getBlockSize());
         do {
             FIleTransferCommand dwldCmd = (FIleTransferCommand)msg;
             dwldCmd.setIsOnClient(true);
-            CommandProcessUtils.execute(dwldCmd, DEFAULT_PATH);
+            FileCommandProcessUtils.execute(dwldCmd, me);
             NetworkManager.sendMsg(msg);
             System.out.println("File " + dwldCmd.getFileName() + ": part " +
                     dwldCmd.getCurrentPartNumber() + " of " +
@@ -165,6 +231,14 @@ public class TestClient{
                 "] is renamed: " + (renCmd.getResultCode() == 0) +
                 ". ResultCode: " + renCmd.getResultCode() + ", Error: "
                 + renCmd.getErrorText());
+
+        // Logging off
+        msg = new LogoffCommand();
+        NetworkManager.sendMsg(msg);
+        msg = NetworkManager.readObject();
+        System.out.println("Logoff current user, Result code: " +
+                msg.getResultCode() + ", " + msg.getErrorText());
+
 
         NetworkManager.stop();
     }

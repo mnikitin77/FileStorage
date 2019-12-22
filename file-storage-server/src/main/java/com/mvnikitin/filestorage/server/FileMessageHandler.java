@@ -1,13 +1,15 @@
 package com.mvnikitin.filestorage.server;
 
 import com.mvnikitin.filestorage.common.message.AbstractNetworkMessage;
+import com.mvnikitin.filestorage.common.message.MessageType;
 import com.mvnikitin.filestorage.common.message.file.FileAbstractCommand;
-import com.mvnikitin.filestorage.common.utils.CommandProcessUtils;
+import com.mvnikitin.filestorage.common.utils.FileCommandProcessUtils;
+import com.mvnikitin.filestorage.server.service.ConfigSettings;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
-public class MessageHandler extends ChannelInboundHandlerAdapter {
+public class FileMessageHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg)
@@ -17,7 +19,7 @@ public class MessageHandler extends ChannelInboundHandlerAdapter {
         FileAbstractCommand cmd = null;
 
         try {
-            if (msg instanceof FileAbstractCommand) {
+            if (message.getType() == MessageType.FILE) {
                 cmd = (FileAbstractCommand) msg;
 
                 System.out.println(cmd.getRqUID());
@@ -27,8 +29,9 @@ public class MessageHandler extends ChannelInboundHandlerAdapter {
                         ", Channel ID: " + ctx.channel().id().asShortText());
 
                 cmd.setIsOnClient(false);
-                CommandProcessUtils.execute(
-                        cmd, ConfigSettings.getInstance().getRootDirectory());
+                FileCommandProcessUtils.execute(
+                        //cmd, ConfigSettings.getInstance().getRootDirectory());
+                        cmd, ConfigSettings.getInstance());
 
                 ctx.writeAndFlush(cmd);
             }

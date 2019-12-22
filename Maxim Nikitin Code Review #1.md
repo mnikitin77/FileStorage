@@ -78,7 +78,7 @@ package com.mvnikitin.filestorage.server;
 
 import com.mvnikitin.filestorage.common.message.AbstractNetworkMessage;
 import com.mvnikitin.filestorage.common.message.file.FileAbstractCommand;
-import com.mvnikitin.filestorage.common.utils.CommandProcessUtils;
+import com.mvnikitin.filestorage.common.utils.FIleCommandProcessUtils;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
@@ -744,7 +744,7 @@ import com.mvnikitin.filestorage.client.utils.NetworkManager;
 import com.mvnikitin.filestorage.common.message.AbstractNetworkMessage;
 import com.mvnikitin.filestorage.common.message.NotSupportedCommand;
 import com.mvnikitin.filestorage.common.message.file.*;
-import com.mvnikitin.filestorage.common.utils.CommandProcessUtils;
+import com.mvnikitin.filestorage.common.utils.FileCommandProcessUtils;
 
 import java.io.IOException;
 import java.util.List;
