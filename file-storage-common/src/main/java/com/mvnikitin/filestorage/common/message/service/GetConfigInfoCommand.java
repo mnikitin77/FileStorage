@@ -3,10 +3,10 @@ package com.mvnikitin.filestorage.common.message.service;
 import com.mvnikitin.filestorage.common.message.AbstractNetworkMessage;
 import com.mvnikitin.filestorage.common.message.MessageType;
 
-public class FileServerConfigCommand extends AbstractNetworkMessage {
+public class GetConfigInfoCommand extends AbstractNetworkMessage {
     private int blockSize;
 
-    public FileServerConfigCommand() {
+    public GetConfigInfoCommand() {
         super(MessageType.SERVICE);
     }
 

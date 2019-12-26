@@ -1,10 +1,10 @@
 package com.mvnikitin.filestorage.common.utils;
 
-public interface FileProcessConfig {
+public interface FileProcessData {
 
-    String getRootDirectory();
+    String getDirectoryPath();
 
-    byte[] getLocalArray();
+    byte[] getWorkArray();
 
     default int getBlockSize() {
         return -1;

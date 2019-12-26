@@ -34,8 +34,12 @@ public class FileStorageServer {
                                             maxMessageSize,
                                             ClassResolvers.cacheDisabled(null)),
                                     new ObjectEncoder(),
-                                    new ServiceMessageHandler(),
-                                    new FileMessageHandler()
+                                    new ClientConfigHandler(),
+                                    new RegisterUserHandler(),
+                                    //new LogonHandler()
+                                    new ServiceMessageHandler()
+                            // FileMessageHandler is added to the
+                            // pipeline in ServiceMessagehandler.channelRead().
                             );
                         }
                     })
@@ -48,13 +52,19 @@ public class FileStorageServer {
             workerGroup.shutdownGracefully();
 
         // Clean local application resources
-            ConfigSettings.clearResources();
+            ConfigSettings.getInstance().clearResources();
         }
     }
 
     public static void main(String[] args) throws Exception {
+        ConfigSettings cfg = ConfigSettings.getInstance();
+        if (cfg == null) {
+            // Error when initializing config data.
+            return;
+        }
+
         maxMessageSize = 1024 * 1024 *
-                ConfigSettings.getInstance().getMaxTransferFileSizeMB();
+                cfg.getMaxTransferFileSizeMB();
 
         try {
             if (args.length > 0) {

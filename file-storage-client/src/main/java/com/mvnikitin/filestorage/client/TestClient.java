@@ -4,17 +4,17 @@ import com.mvnikitin.filestorage.client.utils.NetworkManager;
 import com.mvnikitin.filestorage.common.message.AbstractNetworkMessage;
 import com.mvnikitin.filestorage.common.message.NotSupportedCommand;
 import com.mvnikitin.filestorage.common.message.file.*;
-import com.mvnikitin.filestorage.common.message.service.FileServerConfigCommand;
+import com.mvnikitin.filestorage.common.message.service.GetConfigInfoCommand;
 import com.mvnikitin.filestorage.common.message.service.LogoffCommand;
 import com.mvnikitin.filestorage.common.message.service.LogonCommand;
 import com.mvnikitin.filestorage.common.message.service.RegisterCommand;
 import com.mvnikitin.filestorage.common.utils.FileCommandProcessUtils;
-import com.mvnikitin.filestorage.common.utils.FileProcessConfig;
+import com.mvnikitin.filestorage.common.utils.FileProcessData;
 
 import java.io.IOException;
 import java.util.List;
 
-public class TestClient implements FileProcessConfig {
+public class TestClient implements FileProcessData {
     private static final String DEFAULT_PATH = "client_storage/";
 
     private byte[] localArray;
@@ -24,21 +24,21 @@ public class TestClient implements FileProcessConfig {
         NetworkManager.start("localhost", 8189);
 
         // Get some of the Server config parameters
-        AbstractNetworkMessage msg = new FileServerConfigCommand();
+        AbstractNetworkMessage msg = new GetConfigInfoCommand();
         NetworkManager.sendMsg(msg);
         msg = NetworkManager.readObject();
 
-        blockSize = ((FileServerConfigCommand)msg).getBlockSize();
+        blockSize = ((GetConfigInfoCommand)msg).getBlockSize();
         localArray = new byte[blockSize];
     }
 
     @Override
-    public String getRootDirectory() {
+    public String getDirectoryPath() {
         return DEFAULT_PATH;
     }
 
     @Override
-    public byte[] getLocalArray() {
+    public byte[] getWorkArray() {
         return localArray;
     }
 
@@ -72,9 +72,41 @@ public class TestClient implements FileProcessConfig {
         System.out.println("Result code: " + msg.getResultCode() + ", "
                 + msg.getErrorText());
 
+        // Receive the list of files and directories.
+        msg = new FileDirCommand();
+        NetworkManager.sendMsg(msg);
+        msg = NetworkManager.readObject();
+        System.out.println("DIR, Error: " + msg.getErrorText() +
+                ", code: " + msg.getResultCode());
+        List<FileDirCommand.DirEntry> list1 =
+                ((FileDirCommand)msg).getResults();
+        if (list1 != null) {
+            list1.stream().
+                    map(dirEntry -> dirEntry.isDirectory() ?
+                            "<" + dirEntry.getEntryName() + ">" :
+                            dirEntry.getEntryName()).
+                    forEach(System.out::println);
+        }
+
+    // Logging off
+        msg = new LogoffCommand();
+        NetworkManager.sendMsg(msg);
+        msg = NetworkManager.readObject();
+        System.out.println("Logoff current user, Result code: " +
+                msg.getResultCode() + ", " + msg.getErrorText());
+
     // Logging on a user
         msg = new LogonCommand("test", 3556498);
 //        msg = new LogonCommand("test1", 3556498);
+        NetworkManager.sendMsg(msg);
+        msg = NetworkManager.readObject();
+        System.out.println("Logon, user: " + ((LogonCommand)msg).getUsername() +
+                ", password: " + ((LogonCommand)msg).getPassword());
+        System.out.println("Result code: " + msg.getResultCode() + ", "
+                + msg.getErrorText());
+
+        // Logging on again
+        msg = new LogonCommand("test", 3556498);
         NetworkManager.sendMsg(msg);
         msg = NetworkManager.readObject();
         System.out.println("Logon, user: " + ((LogonCommand)msg).getUsername() +
@@ -86,8 +118,7 @@ public class TestClient implements FileProcessConfig {
         msg = new FileDirCommand();
         NetworkManager.sendMsg(msg);
         msg = NetworkManager.readObject();
-        System.out.println("Command UID: " + msg.getRqUID());
-        System.out.println("Error: " + msg.getErrorText() +
+        System.out.println("DIR, Error: " + msg.getErrorText() +
                 ", code: " + msg.getResultCode());
         List<FileDirCommand.DirEntry> list =
                 ((FileDirCommand)msg).getResults();
@@ -135,8 +166,10 @@ public class TestClient implements FileProcessConfig {
         ((FIleTransferCommand)msg).setIsOnClient(true);
         NetworkManager.sendMsg(msg);
         msg = NetworkManager.readObject();
-        ((FIleTransferCommand)msg).setIsOnClient(true);
-        FileCommandProcessUtils.execute((FileAbstractCommand) msg, me);
+        if (((FIleTransferCommand) msg).getData() != null) {
+            ((FIleTransferCommand) msg).setIsOnClient(true);
+            FileCommandProcessUtils.execute((FileAbstractCommand) msg, me);
+        }
 
     // Download a file by parts from the Server to the Client
         msg = new FIleTransferCommand("2.txt", false, me.getBlockSize());
@@ -149,39 +182,58 @@ public class TestClient implements FileProcessConfig {
             msg = NetworkManager.readObject();
             FIleTransferCommand dwldCmd = (FIleTransferCommand)msg;
             dwldCmd.setIsOnClient(true);
-            System.out.println("File " + dwldCmd.getFileName() + ": part " +
-                    dwldCmd.getCurrentPartNumber() + " of " +
-                    dwldCmd.getPartsCount() + " is downloaded. " +
-                    dwldCmd.getData().length + " bytes transfered.");
-            FileCommandProcessUtils.execute(dwldCmd, me);
-            if (dwldCmd.getCurrentPartNumber() == dwldCmd.getPartsCount()) {
+            if (dwldCmd.getData() != null) {
+                System.out.println("File " + dwldCmd.getFileName() + ": part " +
+                        dwldCmd.getCurrentPartNumber() + " of " +
+                        dwldCmd.getPartsCount() + " is downloaded. " +
+                        dwldCmd.getData().length + " bytes transfered.");
+
+                FileCommandProcessUtils.execute(dwldCmd, me);
+
+                if (dwldCmd.getCurrentPartNumber() == dwldCmd.getPartsCount()) {
+                    isComplete = true;
+                    System.out.println("File " + dwldCmd.getFileName() +
+                            " is downloaded successfully.");
+                }
+
+            } else {
                 isComplete = true;
-                System.out.println("File " + dwldCmd.getFileName() +
-                        " is downloaded successfully.");
             }
         }
 
     // Upload a file by parts from the Client to the Server.
-        msg = new FIleTransferCommand("3.txt", true, me.getBlockSize());
-//        msg = new FIleTransferCommand("MOV_0546.mp4", true, me.getBlockSize());
+//        msg = new FIleTransferCommand("3.txt", true, me.getBlockSize());
+        msg = new FIleTransferCommand("MOV_0546.mp4", true, me.getBlockSize());
+        boolean sucess = false;
         do {
             FIleTransferCommand dwldCmd = (FIleTransferCommand)msg;
             dwldCmd.setIsOnClient(true);
             FileCommandProcessUtils.execute(dwldCmd, me);
-            NetworkManager.sendMsg(msg);
-            System.out.println("File " + dwldCmd.getFileName() + ": part " +
-                    dwldCmd.getCurrentPartNumber() + " of " +
-                    dwldCmd.getPartsCount() + " is uploaded. " +
-                    dwldCmd.getData().length + " bytes transferred.");
-            if (dwldCmd.getCurrentPartNumber() == dwldCmd.getPartsCount()) {
-                System.out.println("File " + dwldCmd.getFileName() +
-                        " is uploadad successfully.");
+
+            if (dwldCmd.getData() != null) {
+                NetworkManager.sendMsg(msg);
+                System.out.println("File " + dwldCmd.getFileName() + ": part " +
+                        dwldCmd.getCurrentPartNumber() + " of " +
+                        dwldCmd.getPartsCount() + " is uploaded. " +
+                        dwldCmd.getData().length + " bytes transferred.");
+                if (dwldCmd.getCurrentPartNumber() == dwldCmd.getPartsCount()) {
+                    System.out.println("File " + dwldCmd.getFileName() +
+                            " is uploadad successfully.");
+
+                    sucess = true;
+                    break;
+                }
+
+                msg = NetworkManager.readObject();
+            }
+            if (dwldCmd.getData() == null) {
                 break;
             }
-            msg = NetworkManager.readObject();
         } while (true);
     // Read the final response message sent by the server.
-        NetworkManager.readObject();
+        if (sucess) {
+            NetworkManager.readObject();
+        }
 
     // Deleting a file or directory
         msg = new FileDeleteCommand("somedir");

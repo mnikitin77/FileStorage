@@ -4,12 +4,24 @@ import com.mvnikitin.filestorage.common.message.AbstractNetworkMessage;
 import com.mvnikitin.filestorage.common.message.MessageType;
 import com.mvnikitin.filestorage.common.message.file.FileAbstractCommand;
 import com.mvnikitin.filestorage.common.utils.FileCommandProcessUtils;
-import com.mvnikitin.filestorage.server.service.ConfigSettings;
+import com.mvnikitin.filestorage.server.service.ClientSession;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class FileMessageHandler extends ChannelInboundHandlerAdapter {
+
+    private final static SimpleDateFormat DATE_FORMAT
+            = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+
+    private ClientSession client;
+
+    public FileMessageHandler (ClientSession client) {
+        this.client = client;
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg)
@@ -22,16 +34,16 @@ public class FileMessageHandler extends ChannelInboundHandlerAdapter {
             if (message.getType() == MessageType.FILE) {
                 cmd = (FileAbstractCommand) msg;
 
-                System.out.println(cmd.getRqUID());
             // TODO - писать потом Username, добавить логгер.
-                System.out.println("Remote address: " +
+                System.out.println("[" + DATE_FORMAT.format(new Date()) + "]: " +
                         ctx.channel().remoteAddress() +
-                        ", Channel ID: " + ctx.channel().id().asShortText());
+                        " [" + client.getUsername() + "] command: " +
+                        cmd.getClass().getSimpleName());
 
                 cmd.setIsOnClient(false);
                 FileCommandProcessUtils.execute(
                         //cmd, ConfigSettings.getInstance().getRootDirectory());
-                        cmd, ConfigSettings.getInstance());
+                        cmd, client);
 
                 ctx.writeAndFlush(cmd);
             }

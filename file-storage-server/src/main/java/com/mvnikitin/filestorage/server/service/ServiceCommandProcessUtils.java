@@ -1,26 +1,22 @@
 package com.mvnikitin.filestorage.server.service;
 
 import com.mvnikitin.filestorage.common.message.AbstractNetworkMessage;
-import com.mvnikitin.filestorage.common.message.service.FileServerConfigCommand;
 import com.mvnikitin.filestorage.common.message.service.LogoffCommand;
 import com.mvnikitin.filestorage.common.message.service.LogonCommand;
 import com.mvnikitin.filestorage.common.message.service.RegisterCommand;
-import com.mvnikitin.filestorage.common.utils.FileProcessConfig;
 
 import java.sql.SQLException;
 import java.util.*;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class ServiceCommandProcessUtils {
     private static Map<
             String,
-            BiConsumer<AbstractNetworkMessage, FileProcessConfig>>
+            Consumer<AbstractNetworkMessage>>
 
             executors = new HashMap<>();
 
     static {
-        executors.put(FileServerConfigCommand.class.getName(),
-                ServiceCommandProcessUtils.createFileServerConfigExecutor());
         executors.put(LogonCommand.class.getName(),
                 ServiceCommandProcessUtils.createLogonExecutor());
         executors.put(LogoffCommand.class.getName(),
@@ -29,34 +25,19 @@ public class ServiceCommandProcessUtils {
                 ServiceCommandProcessUtils.createRegisterExecutor());
     }
 
-    public static void execute(AbstractNetworkMessage cmd,
-                               FileProcessConfig config) {
+    public static void execute(AbstractNetworkMessage cmd) {
         String key = cmd.getClass().getName();
         if (executors.containsKey(key)) {
-            executors.get(key).accept(cmd, config);
+            executors.get(key).accept(cmd);
         } else {
             throw new IllegalArgumentException();
         }
     }
 
-    private static BiConsumer<AbstractNetworkMessage, FileProcessConfig>
-    createFileServerConfigExecutor() {
-        BiConsumer<AbstractNetworkMessage, FileProcessConfig> BiConsumer =
-                (cmd, config) -> {
-                    FileServerConfigCommand confCmd =
-                            (FileServerConfigCommand) cmd;
-
-                    confCmd.setBlockSize(config.getBlockSize());
-                    confCmd.setResultCode(0);
-                };
-
-        return BiConsumer;
-    }
-
-    private static BiConsumer<AbstractNetworkMessage, FileProcessConfig>
+    private static Consumer<AbstractNetworkMessage>
     createLogonExecutor() {
-        BiConsumer<AbstractNetworkMessage, FileProcessConfig> BiConsumer =
-                (cmd, config) -> {
+        Consumer<AbstractNetworkMessage> consumer =
+                (cmd) -> {
                     LogonCommand logonCmd =
                             (LogonCommand) cmd;
                     try {
@@ -73,27 +54,26 @@ public class ServiceCommandProcessUtils {
                     }
                 };
 
-        return BiConsumer;
+        return consumer;
     }
 
-    private static BiConsumer<AbstractNetworkMessage, FileProcessConfig>
+    private static Consumer<AbstractNetworkMessage>
     createLogoffExecutor() {
-        BiConsumer<AbstractNetworkMessage, FileProcessConfig> BiConsumer =
-                (cmd, config) -> {
+        Consumer<AbstractNetworkMessage> consumer =
+                (cmd) -> {
                     LogoffCommand logoffCmd =
                             (LogoffCommand) cmd;
-                    // TODO
-                    System.out.println("User TODO logged off.");
                     logoffCmd.setResultCode(0);
+                    logoffCmd.setErrorText("OK");
                 };
 
-        return BiConsumer;
+        return consumer;
     }
 
-    private static BiConsumer<AbstractNetworkMessage, FileProcessConfig>
+    private static Consumer<AbstractNetworkMessage>
     createRegisterExecutor() {
-        BiConsumer<AbstractNetworkMessage, FileProcessConfig> BiConsumer =
-                (cmd, config) -> {
+        Consumer<AbstractNetworkMessage> consumer =
+                (cmd) -> {
                     RegisterCommand regCmd =
                             (RegisterCommand) cmd;
                     try {
@@ -112,10 +92,11 @@ public class ServiceCommandProcessUtils {
                     }
                 };
 
-        return BiConsumer;
+        return consumer;
     }
 
-    private static void handleException(Exception e, AbstractNetworkMessage command) {
+    private static void handleException(Exception e,
+                                        AbstractNetworkMessage command) {
         command.setResultCode(-1);
         command.setErrorText(e.getMessage() == null ?
                 "Error: " + e.toString() : e.getMessage());
