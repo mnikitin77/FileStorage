@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.input.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="800" minWidth="1200" prefHeight="800.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mvnikitin.filestorage.client.LogonController">
+   <children>
+      <MenuBar fx:id="menuBar">
+        <menus>
+          <Menu mnemonicParsing="false" text="_File">
+            <items>
+                  <MenuItem fx:id="properties" mnemonicParsing="false" onAction="#showProperties" text="Properties">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+              <MenuItem fx:id="exit" mnemonicParsing="false" onAction="#exitApplication" text="Exit">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="Q" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="_Help">
+            <items>
+              <MenuItem fx:id="about" mnemonicParsing="false" onAction="#showAbout" text="About" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+      <Label text="Net Memory" textFill="#3494e2">
+         <font>
+            <Font name="System Bold" size="92.0" />
+         </font>
+      </Label>
+      <ImageView fitHeight="394.0" fitWidth="394.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@flash.png" />
+         </image></ImageView>
+      <StackPane prefHeight="150.0" prefWidth="200.0">
+         <children>
+            <VBox fx:id="registerPanel" alignment="TOP_CENTER" spacing="15.0" visible="false">
+               <children>
+                  <HBox alignment="TOP_CENTER" prefHeight="52.0" prefWidth="1200.0" VBox.vgrow="NEVER">
+                     <children>
+                        <VBox spacing="10.0">
+                           <children>
+                              <Label text="Username:">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Label>
+                              <Label text="Password:">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Label>
+                              <Label text="Repeat password:">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Label>
+                           </children>
+                           <padding>
+                              <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
+                           </padding>
+                        </VBox>
+                        <VBox prefHeight="157.0" prefWidth="200.0" spacing="10.0">
+                           <children>
+                              <TextField fx:id="regUserText" minWidth="200.0">
+                                 <font>
+                                    <Font size="14.0" />
+                                 </font>
+                              </TextField>
+                              <PasswordField fx:id="regPwd1Text" minWidth="200.0">
+                                 <font>
+                                    <Font size="14.0" />
+                                 </font>
+                              </PasswordField>
+                              <PasswordField fx:id="regPwd2Text" minWidth="200.0">
+                                 <font>
+                                    <Font size="14.0" />
+                                 </font>
+                              </PasswordField>
+                           </children>
+                           <padding>
+                              <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
+                           </padding>
+                        </VBox>
+                     </children>
+                  </HBox>
+                  <Button alignment="TOP_CENTER" minWidth="300.0" mnemonicParsing="false" style="-fx-background-color: rgba(0,0,0,0.08),        linear-gradient(#5a61af, #51536d),        linear-gradient(#e4fbff 0%,#cee6fb 10%, #a5d3fb 50%, #88c6fb 51%, #d5faff 100%); -fx-background-insets: 0 0 -1 0,0,1; -fx-background-radius: 5,5,4; -fx-padding: 3 30 3 30; -fx-text-fill: #242d35; -fx-font-size: 18px; -fx-font-family: Helvetica; -fx-font-weight: bold;" text="REGISTER" />
+                  <Hyperlink fx:id="back" onAction="#showLogonPanel" text="Back">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Hyperlink>
+               </children>
+            </VBox>
+            <VBox fx:id="logonPanel" alignment="TOP_CENTER" spacing="15.0">
+               <children>
+                  <HBox alignment="TOP_CENTER" prefHeight="52.0" prefWidth="1200.0" VBox.vgrow="NEVER">
+                     <children>
+                        <VBox spacing="10.0">
+                           <children>
+                              <Label text="Username:">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Label>
+                              <Label text="Password:">
+                                 <font>
+                                    <Font size="18.0" />
+                                 </font>
+                              </Label>
+                           </children>
+                           <padding>
+                              <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
+                           </padding>
+                        </VBox>
+                        <VBox prefHeight="157.0" prefWidth="200.0" spacing="10.0">
+                           <children>
+                              <TextField fx:id="usernameText" minWidth="200.0">
+                                 <font>
+                                    <Font size="14.0" />
+                                 </font>
+                              </TextField>
+                              <PasswordField fx:id="passwordPwd" minWidth="200.0">
+                                 <font>
+                                    <Font size="14.0" />
+                                 </font>
+                              </PasswordField>
+                           </children>
+                           <padding>
+                              <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
+                           </padding>
+                        </VBox>
+                     </children>
+                  </HBox>
+                  <Button alignment="TOP_CENTER" minWidth="300.0" mnemonicParsing="false" style="-fx-background-color: rgba(0,0,0,0.08),        linear-gradient(#5a61af, #51536d),        linear-gradient(#e4fbff 0%,#cee6fb 10%, #a5d3fb 50%, #88c6fb 51%, #d5faff 100%); -fx-background-insets: 0 0 -1 0,0,1; -fx-background-radius: 5,5,4; -fx-padding: 3 30 3 30; -fx-text-fill: #242d35; -fx-font-size: 18px; -fx-font-family: Helvetica; -fx-font-weight: bold;" text="LOGON" />
+                  <Hyperlink fx:id="register" onAction="#showRegsiterPanel" text="Register">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Hyperlink>
+               </children>
+            </VBox>
+         </children>
+      </StackPane>
+   </children>
+</VBox>

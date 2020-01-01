@@ -118,7 +118,6 @@ public class ConfigSettings extends ObjectPool<WorkArray>{
     @Override
     public void checkPool() {
         super.checkPool();
-        System.out.println("checkPool() entered");
 
     // Check if the there are more than required of work arrays
         int requiredFree = minBuffersNumber - activeList.size();
@@ -128,8 +127,5 @@ public class ConfigSettings extends ObjectPool<WorkArray>{
                     .limit(requiredFree)
                     .collect(Collectors.toList());
         }
-        System.out.println("requiredFree: " + requiredFree +
-                ", freeList.size(): " + freeList.size() +
-                ", activeList.size(): " + activeList.size());
     }
 }
