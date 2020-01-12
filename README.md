@@ -28,3 +28,16 @@ Architecture:
 
 ## file-storage-common package
 Contains the common file command classes, interfaces and logic shared by both the server and the client.
+
+## Pictures
+### 1. Logon form
+![](Pictures/FileStorage_logon.png)
+
+### 2. Register form
+![](Pictures/FileStorage_register.png)
+
+### 3. Downloading a file
+![](Pictures/FileStorage_downloading.png)
+
+### 4. Downloading a file
+![](Pictures/FileStorage_new_folder.png)
