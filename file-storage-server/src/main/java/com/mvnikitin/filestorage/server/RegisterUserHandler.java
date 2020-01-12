@@ -1,18 +1,19 @@
 package com.mvnikitin.filestorage.server;
 
 import com.mvnikitin.filestorage.common.message.AbstractNetworkMessage;
-import com.mvnikitin.filestorage.common.message.service.GetConfigInfoCommand;
 import com.mvnikitin.filestorage.common.message.service.RegisterCommand;
-import com.mvnikitin.filestorage.server.service.ConfigSettings;
 import com.mvnikitin.filestorage.server.service.ServiceCommandProcessUtils;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
-import java.text.DateFormat;
-import java.util.Date;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class RegisterUserHandler extends ChannelInboundHandlerAdapter {
+
+    private static final Logger logger =
+            LogManager.getLogger(RegisterUserHandler.class.getName());
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg)
@@ -22,9 +23,7 @@ public class RegisterUserHandler extends ChannelInboundHandlerAdapter {
 
         try {
             if (cmd instanceof RegisterCommand) {
-                System.out.println("[" +
-                        DateFormat.getDateTimeInstance().format(new Date()) +
-                        "]: " + ctx.channel().remoteAddress() +
+                logger.info(ctx.channel().remoteAddress() +
                         " command: " + cmd.getClass().getSimpleName());
 
                 ServiceCommandProcessUtils.execute(cmd);
@@ -38,6 +37,8 @@ public class RegisterUserHandler extends ChannelInboundHandlerAdapter {
             cmd.setErrorText("Command of [" +
                     cmd.getClass() + "] is not supported by the server.");
             cmd.setResultCode(-1);
+            logger.warn(cmd.getErrorText());
+
             ctx.writeAndFlush(cmd);
         } finally {
             ReferenceCountUtil.release(msg);
@@ -47,7 +48,9 @@ public class RegisterUserHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
             throws Exception {
-        cause.printStackTrace();
+//        cause.printStackTrace();
+        logger.error(cause.getMessage(), cause);
+
         ctx.close();
     }
 }

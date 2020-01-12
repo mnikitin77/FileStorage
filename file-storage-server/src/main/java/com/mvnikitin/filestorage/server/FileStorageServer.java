@@ -13,7 +13,13 @@ import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class FileStorageServer {
+
+    private static final Logger logger =
+            LogManager.getLogger(FileStorageServer.class.getName());
 
     private static int maxMessageSize;
     private static int port;
@@ -43,12 +49,17 @@ public class FileStorageServer {
                         }
                     })
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
+
+            logger.info("FileStorage server is started.");
+
             ChannelFuture future =
                     b.bind(port).sync();
             future.channel().closeFuture().sync();
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
+
+            logger.info("FileStorage server is shut down.");
 
         // Clean local application resources
             ConfigSettings.getInstance().clearResources();
@@ -57,14 +68,8 @@ public class FileStorageServer {
 
     public static void main(String[] args) throws Exception {
         ConfigSettings cfg = ConfigSettings.getInstance();
-        if (cfg == null) {
-            // Error when initializing config data.
-            return;
-        }
-
         maxMessageSize = 1024 * 1024 *
                 cfg.getMaxTransferFileSizeMB();
-
         try {
             if (args.length > 0) {
                 port = Integer.parseInt(args[0]);
@@ -75,8 +80,10 @@ public class FileStorageServer {
                 port = ConfigSettings.getInstance().getPort();
             }
         } catch (Exception e) {
-            throw new RuntimeException("Invalid port number. " +
-                    "The port must be in the range between 1024 and 65535");
+            String errorMessage = "Invalid port number. " +
+                    "The port must be in the range between 1024 and 65535";
+            logger.error(errorMessage);
+            throw new RuntimeException(errorMessage);
         }
 
         new FileStorageServer().run();

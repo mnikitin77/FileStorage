@@ -12,10 +12,13 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
-import java.text.DateFormat;
-import java.util.Date;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ServiceMessageHandler extends ChannelInboundHandlerAdapter {
+
+    private static final Logger logger =
+            LogManager.getLogger(ServiceMessageHandler.class.getName());
 
     private ClientSession client;
 
@@ -28,9 +31,7 @@ public class ServiceMessageHandler extends ChannelInboundHandlerAdapter {
         try {
 
             if (cmd.getType() == MessageType.SERVICE) {
-                System.out.println("[" +
-                        DateFormat.getDateTimeInstance().format(new Date()) +
-                        "]: " + ctx.channel().remoteAddress() +
+                logger.info(ctx.channel().remoteAddress() +
                         (client != null ? (" [" + client.getUsername() + "]") :
                         "") +
                         " command: " + cmd.getClass().getSimpleName());
@@ -40,6 +41,10 @@ public class ServiceMessageHandler extends ChannelInboundHandlerAdapter {
                         clientIsNotLoggedOn(ctx, cmd);
                     } else {
                         // Sending a response to the client and closing the channel.
+                        logger.info(ctx.channel().remoteAddress() +
+                                " User [" + client.getUsername() + "]" +
+                                " successfully logged off.");
+
                         ChannelFuture future = ctx.writeAndFlush(cmd);
                         future.addListener(ChannelFutureListener.CLOSE);
                         client = null;
@@ -54,12 +59,19 @@ public class ServiceMessageHandler extends ChannelInboundHandlerAdapter {
                         LogonCommand logon = (LogonCommand) cmd;
                         client = new ClientSession(logon.getUsername());
 
+                        logger.info(ctx.channel().remoteAddress() +
+                                " User [" + client.getUsername() + "]" +
+                                " successfully logged on.");
+
                         // Add the file command handler to the pipeline.
                         ctx.pipeline().addLast(new FileMessageHandler(client));
                     } else if (cmd instanceof LogonCommand && client != null) {
                         // The user is already logged on.
                         cmd.setResultCode(-1);
-                        cmd.setErrorText("The user is already logged on.");
+                        cmd.setErrorText("The user [" +
+                                ((LogonCommand) cmd).getUsername() +
+                                "] is already logged on.");
+                        logger.warn(cmd.getErrorText());
                     }
 
                     ctx.writeAndFlush(cmd);
@@ -70,11 +82,6 @@ public class ServiceMessageHandler extends ChannelInboundHandlerAdapter {
                 ctx.fireChannelRead(msg);
             } else {
             // The user is not logged on yet.
-                System.out.println("[" +
-                        DateFormat.getDateTimeInstance().format(new Date()) +
-                        "]: " + ctx.channel().remoteAddress() +
-                        " command: " + cmd.getClass().getSimpleName());
-
                 clientIsNotLoggedOn(ctx, cmd);
             }
 
@@ -82,6 +89,8 @@ public class ServiceMessageHandler extends ChannelInboundHandlerAdapter {
             cmd.setErrorText("Command of [" +
                     cmd.getClass() + "] is not supported by the server.");
             cmd.setResultCode(-1);
+            logger.warn(cmd.getErrorText());
+
             ctx.writeAndFlush(cmd);
         } finally {
             ReferenceCountUtil.release(msg);
@@ -91,7 +100,8 @@ public class ServiceMessageHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
             throws Exception {
-        cause.printStackTrace();
+        logger.error(cause.getMessage(), cause);
+
         ctx.close();
     }
 
@@ -99,6 +109,8 @@ public class ServiceMessageHandler extends ChannelInboundHandlerAdapter {
                                      AbstractNetworkMessage cmd) {
         cmd.setResultCode(-1);
         cmd.setErrorText("The user is not logged on.");
+        logger.warn(cmd.getErrorText());
+
         ctx.writeAndFlush(cmd);
     }
 }

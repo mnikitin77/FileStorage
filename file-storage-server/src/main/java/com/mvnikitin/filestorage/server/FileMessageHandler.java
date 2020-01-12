@@ -9,10 +9,13 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
-import java.text.DateFormat;
-import java.util.Date;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class FileMessageHandler extends ChannelInboundHandlerAdapter {
+
+    private static final Logger logger =
+            LogManager.getLogger(FileMessageHandler.class.getName());
 
     private ClientSession client;
 
@@ -30,12 +33,10 @@ public class FileMessageHandler extends ChannelInboundHandlerAdapter {
         try {
             if (message.getType() == MessageType.FILE) {
                 cmd = (FileAbstractCommand) msg;
-
-                System.out.println("[" +
-                        DateFormat.getDateTimeInstance().format(new Date()) +
-                        "]: " + ctx.channel().remoteAddress() +
-                        " [" + client.getUsername() + "] command: " +
-                        cmd.getClass().getSimpleName());
+                logInfo(cmd, ctx.channel().remoteAddress() +
+                        " User [" + client.getUsername() + "] command: " +
+                        cmd.getClass().getSimpleName() +
+                        ", [" + cmd.getFileName() + "].");
 
                 cmd.setIsOnClient(false);
                 FileCommandProcessUtils.execute(cmd, client);
@@ -49,6 +50,8 @@ public class FileMessageHandler extends ChannelInboundHandlerAdapter {
             message.setErrorText("Command of the class [" +
                     message.getClass() + "] is not supported by the server.");
             message.setResultCode(-1);
+            logger.warn(cmd.getErrorText());
+
             ctx.writeAndFlush(message);
         } finally {
             ReferenceCountUtil.release(msg);
@@ -58,7 +61,16 @@ public class FileMessageHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
             throws Exception {
-        cause.printStackTrace();
+        logger.error(cause.getMessage(), cause);
+
         ctx.close();
+    }
+
+    private void logInfo(FileAbstractCommand cmd, String message) {
+        if (cmd.isLogged()) {
+            return;
+        }
+        logger.info(message);
+        cmd.setLogged(true);
     }
 }

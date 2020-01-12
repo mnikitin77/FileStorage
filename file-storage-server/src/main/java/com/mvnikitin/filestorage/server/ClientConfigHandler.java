@@ -7,10 +7,13 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
-import java.text.DateFormat;
-import java.util.Date;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ClientConfigHandler extends ChannelInboundHandlerAdapter {
+
+    private static final Logger logger =
+            LogManager.getLogger(ClientConfigHandler.class.getName());
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg)
@@ -20,9 +23,7 @@ public class ClientConfigHandler extends ChannelInboundHandlerAdapter {
 
         try {
             if (cmd instanceof GetConfigInfoCommand) {
-                System.out.println("[" +
-                        DateFormat.getDateTimeInstance().format(new Date()) +
-                        "]: " + ctx.channel().remoteAddress() +
+                logger.info(ctx.channel().remoteAddress() +
                         " command: " + cmd.getClass().getSimpleName());
 
                 ((GetConfigInfoCommand)cmd).setBlockSize(
@@ -38,6 +39,8 @@ public class ClientConfigHandler extends ChannelInboundHandlerAdapter {
             cmd.setErrorText("Command of [" +
                     cmd.getClass() + "] is not supported by the server.");
             cmd.setResultCode(-1);
+            logger.warn(cmd.getErrorText());
+
             ctx.writeAndFlush(cmd);
         } finally {
             ReferenceCountUtil.release(msg);
@@ -47,7 +50,8 @@ public class ClientConfigHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
             throws Exception {
-        cause.printStackTrace();
+        logger.error(cause.getMessage(), cause);
+
         ctx.close();
     }
 }

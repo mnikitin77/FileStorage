@@ -6,6 +6,7 @@ import com.mvnikitin.filestorage.common.message.MessageType;
 public abstract class FileAbstractCommand extends AbstractNetworkMessage {
     private String fileName;
     private boolean isOnClient; // Это костыль, но что делать
+    private boolean isLogged;
 
     public FileAbstractCommand(String fileName) {
         super(MessageType.FILE);
@@ -29,5 +30,13 @@ public abstract class FileAbstractCommand extends AbstractNetworkMessage {
 
     public void setIsOnClient(boolean isOnClient) {
         this.isOnClient = isOnClient;
+    }
+
+    public boolean isLogged() {
+        return isLogged;
+    }
+
+    public void setLogged(boolean logged) {
+        isLogged = logged;
     }
 }

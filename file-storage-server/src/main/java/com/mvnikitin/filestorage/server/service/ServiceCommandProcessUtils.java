@@ -12,7 +12,13 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.function.Consumer;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class ServiceCommandProcessUtils {
+    private static final Logger logger =
+            LogManager.getLogger(ServiceCommandProcessUtils.class.getName());
+
     private static Map<String, Consumer<AbstractNetworkMessage>> executors =
             new HashMap<>();
 
@@ -107,6 +113,6 @@ public class ServiceCommandProcessUtils {
         command.setResultCode(-1);
         command.setErrorText(e.getMessage() == null ?
                 "Error: " + e.toString() : e.getMessage());
-        e.printStackTrace();
+        logger.error(command.getErrorText(), e);
     }
 }
