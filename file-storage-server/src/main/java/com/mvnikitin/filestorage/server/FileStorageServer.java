@@ -36,7 +36,6 @@ public class FileStorageServer {
                                     new ObjectEncoder(),
                                     new ClientConfigHandler(),
                                     new RegisterUserHandler(),
-                                    //new LogonHandler()
                                     new ServiceMessageHandler()
                             // FileMessageHandler is added to the
                             // pipeline in ServiceMessagehandler.channelRead().

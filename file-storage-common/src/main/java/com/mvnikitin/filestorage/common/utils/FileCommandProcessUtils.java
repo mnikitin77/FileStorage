@@ -32,6 +32,10 @@ public class FileCommandProcessUtils {
                 FileCommandProcessUtils.createDeleteExecutor());
         executors.put(FileRenameCommand.class.getName(),
                 FileCommandProcessUtils.createRenameExecutor());
+        executors.put(FileChangeDirCommand.class.getName(),
+                FileCommandProcessUtils.createChangeDirExecutor());
+        executors.put(FileMakeDirCommand.class.getName(),
+                FileCommandProcessUtils.createMakeDirExecutor());
     }
 
     public static void execute(FileAbstractCommand cmd, FileProcessData processData) {
@@ -45,40 +49,51 @@ public class FileCommandProcessUtils {
 
     private static BiConsumer<FileAbstractCommand, FileProcessData>
     createDirExecutor() {
-        BiConsumer<FileAbstractCommand, FileProcessData> biConsumer =
-                (cmd, processData) -> {
-                    List<FileDirCommand.DirEntry> result = new ArrayList<>();
-                    FileDirCommand dirCmd = (FileDirCommand) cmd;
+        return (cmd, processData) -> {
+            List<FileDirCommand.DirEntry> result = new ArrayList<>();
+            FileDirCommand dirCmd = (FileDirCommand) cmd;
 
-                    try (DirectoryStream<Path> stream =
-                                 Files.newDirectoryStream(Paths.get(
-                                         processData.getDirectoryPath()));) {
-                        for (Path p: stream) {
-                            result.add(new FileDirCommand.DirEntry(p.getName(
-                                    p.getNameCount() - 1).toString(),
-                                    Files.isDirectory(p)));
-                        }
-                    } catch (IOException e) {
-                        handleException(e, dirCmd);
-                    }
+            Path currentPath = Paths.get(
+                    processData.getCurrentDirectory());
 
-                    dirCmd.setResults(result);
-                    dirCmd.setResultCode(0);
-                };
+            try (DirectoryStream<Path> stream =
+                         Files.newDirectoryStream(currentPath);) {
 
-        return biConsumer;
+                BasicFileAttributes attrs;
+                for (Path p: stream) {
+                    attrs = Files.readAttributes(
+                            p, BasicFileAttributes.class);
+
+                    result.add(new FileDirCommand.DirEntry(p.getName(
+                            p.getNameCount() - 1).toString(),
+                            Files.isDirectory(p), attrs.size(),
+                            new Date(attrs.creationTime().toMillis()),
+                            new Date(attrs.lastModifiedTime().toMillis())));
+                }
+
+                dirCmd.setRelativePath(
+                        Paths.get(processData.getRootDirectory())
+                        .relativize(currentPath).toString());
+
+            } catch (IOException e) {
+                handleException(e, dirCmd);
+            }
+
+            dirCmd.setResults(result);
+            dirCmd.setResultCode(0);
+            dirCmd.setErrorText("OK");
+        };
     }
 
     private static BiConsumer<FileAbstractCommand, FileProcessData>
     createAttrsExecutor() {
-        BiConsumer<FileAbstractCommand, FileProcessData> biConsumer =
-                (cmd, processData) -> {
+        return (cmd, processData) -> {
             FileInfoCommand attrCmd = (FileInfoCommand) cmd;
             BasicFileAttributes attrs;
 
             try {
                 attrs = Files.readAttributes(Paths.get(
-                        processData.getDirectoryPath() + attrCmd.getFileName()),
+                        processData.getCurrentDirectory(), attrCmd.getFileName()),
                         BasicFileAttributes.class);
 
                 attrCmd.setCreationTime(new Date(attrs.creationTime().toMillis()));
@@ -86,41 +101,38 @@ public class FileCommandProcessUtils {
                 attrCmd.setModifiedTime(new Date(attrs.lastModifiedTime().toMillis()));
                 attrCmd.setDirectory(attrs.isDirectory());
                 attrCmd.setSize(attrs.size());
-                attrCmd.setResultCode(0);
 
+                attrCmd.setResultCode(0);
+                attrCmd.setErrorText("OK");
             } catch (IOException e) {
                 handleException(e, attrCmd);
             }
         };
-
-        return biConsumer;
     }
 
     private static BiConsumer<FileAbstractCommand, FileProcessData>
     createFileTransferExecutor() {
-        BiConsumer<FileAbstractCommand, FileProcessData> biConsumer =
-                (cmd, processData) -> {
+        return (cmd, processData) -> {
             FIleTransferCommand dwldCmd = (FIleTransferCommand) cmd;
 
             try {
                 if (dwldCmd.isUpload()  && !dwldCmd.isOnClient() ||
                         !dwldCmd.isUpload() && dwldCmd.isOnClient()) {
                     FileCommandProcessUtils.receiveFileData(dwldCmd,
-                            processData.getDirectoryPath());
+                            processData.getCurrentDirectory());
                 } else {
                     dwldCmd.setData(FileCommandProcessUtils.provideFileData(
                             dwldCmd,
-                            processData.getDirectoryPath(),
+                            processData.getCurrentDirectory(),
                             processData.getWorkArray()));
                 }
 
                 dwldCmd.setResultCode(0);
-
+                dwldCmd.setErrorText("OK");
             } catch (IOException e) {
                 handleException(e, dwldCmd);
             }
         };
-        return biConsumer;
     }
 
     private static byte[] provideFileData(FIleTransferCommand cmd,
@@ -132,7 +144,8 @@ public class FileCommandProcessUtils {
         byte[] data = array;
 
         try (RandomAccessFile file = new RandomAccessFile(
-                directoryPath + cmd.getFileName(), "r");) {
+                Paths.get(directoryPath,
+                        cmd.getFileName()).toString(), "r");) {
 
             int fileLength = (int)file.length();
             if (fileLength < array.length) {
@@ -184,7 +197,8 @@ public class FileCommandProcessUtils {
             throws IOException {
 
         try (RandomAccessFile file = new RandomAccessFile(
-                directoryPath + cmd.getFileName(), "rw");) {
+                Paths.get(directoryPath,
+                        cmd.getFileName()).toString(), "rw");) {
             if (cmd.getBlockSize() <= 0) {
                 file.write(cmd.getData());
             } else {
@@ -201,42 +215,88 @@ public class FileCommandProcessUtils {
 
     private static BiConsumer<FileAbstractCommand, FileProcessData>
     createDeleteExecutor() {
-        BiConsumer<FileAbstractCommand, FileProcessData> biConsumer =
-                (cmd, processData) -> {
-                    FileDeleteCommand delCmd = (FileDeleteCommand) cmd;
+        return (cmd, processData) -> {
+            FileDeleteCommand delCmd = (FileDeleteCommand) cmd;
 
-                    try {
-                        delCmd.setDeleted(
-                                Files.deleteIfExists(
-                                        Paths.get(processData.getDirectoryPath() +
-                                                delCmd.getFileName())));
-                        delCmd.setResultCode(0);
-                    } catch (IOException e) {
-                        handleException(e, delCmd);
-                    }
-                };
+            try {
+                delCmd.setDeleted(
+                        Files.deleteIfExists(
+                                Paths.get(processData.getCurrentDirectory(),
+                                        delCmd.getFileName())));
 
-        return biConsumer;
+                delCmd.setResultCode(0);
+                delCmd.setErrorText("OK");
+            } catch (IOException e) {
+                handleException(e, delCmd);
+            }
+        };
     }
 
     private static BiConsumer<FileAbstractCommand, FileProcessData>
     createRenameExecutor() {
-        BiConsumer<FileAbstractCommand, FileProcessData> biConsumer =
-                (cmd, processData) -> {
-                    FileRenameCommand renCmd = (FileRenameCommand) cmd;
+        return (cmd, processData) -> {
+            FileRenameCommand renCmd = (FileRenameCommand) cmd;
+            try {
+                Path source = Paths.get(processData.getCurrentDirectory(),
+                        renCmd.getFrom());
+                Files.move(source, source.resolveSibling(
+                        Paths.get(renCmd.getTo())));
+                renCmd.setResultCode(0);
+                renCmd.setErrorText("OK");
+            } catch (IOException e) {
+                handleException(e, renCmd);
+            }
+        };
+    }
 
-                    try {
-                        Path source = Paths.get(processData.getDirectoryPath() +
-                                renCmd.getFrom());
-                        Files.move(source, source.resolveSibling(
-                                Paths.get(renCmd.getTo())));
-                        renCmd.setResultCode(0);
-                    } catch (IOException e) {
-                        handleException(e, renCmd);
-                    }
-                };
+    private static BiConsumer<FileAbstractCommand, FileProcessData>
+    createChangeDirExecutor() {
+        return (cmd, processData) -> {
+            FileChangeDirCommand cdCmd = (FileChangeDirCommand) cmd;
 
-        return biConsumer;
+            String currentDir =
+                    processData.getCurrentDirectory();
+
+            if (cdCmd.getFileName() == null ||
+                    cdCmd.getFileName().equals("")) {
+                if (!currentDir.equals(
+                        processData.getRootDirectory())) {
+
+                    processData.setCurrentDirectory(
+                            Paths.get(currentDir)
+                                    .getParent().toString());
+
+                    cdCmd.setResultCode(0);
+                    cdCmd.setErrorText("OK");
+                } else {
+                    cdCmd.setResultCode(-1);
+                    cdCmd.setErrorText("The current folder is " +
+                            "the root directory.");
+                }
+            } else {
+                processData.setCurrentDirectory(
+                        Paths.get(currentDir, cdCmd.getFileName())
+                                .toString());
+                cdCmd.setResultCode(0);
+                cdCmd.setErrorText("OK");
+            }
+        };
+    }
+
+    private static BiConsumer<FileAbstractCommand, FileProcessData>
+    createMakeDirExecutor() {
+        return (cmd, processData) -> {
+            FileMakeDirCommand mdCmd = (FileMakeDirCommand) cmd;
+            try {
+                Files.createDirectory(
+                        Paths.get(processData.getCurrentDirectory(),
+                                mdCmd.getFileName()));
+                mdCmd.setResultCode(0);
+                mdCmd.setErrorText("OK");
+            } catch (IOException e) {
+                handleException(e, mdCmd);
+            }
+        };
     }
 
     private static void handleException(Exception e, AbstractNetworkMessage command) {

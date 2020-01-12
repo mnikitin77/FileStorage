@@ -33,7 +33,12 @@ public class TestClient implements FileProcessData {
     }
 
     @Override
-    public String getDirectoryPath() {
+    public String getCurrentDirectory() {
+        return DEFAULT_PATH;
+    }
+
+    @Override
+    public String getRootDirectory() {
         return DEFAULT_PATH;
     }
 
@@ -82,7 +87,7 @@ public class TestClient implements FileProcessData {
                 ((FileDirCommand)msg).getResults();
         if (list1 != null) {
             list1.stream().
-                    map(dirEntry -> dirEntry.isDirectory() ?
+                    map(dirEntry -> dirEntry.getDirectory() ?
                             "<" + dirEntry.getEntryName() + ">" :
                             dirEntry.getEntryName()).
                     forEach(System.out::println);
@@ -123,7 +128,7 @@ public class TestClient implements FileProcessData {
         List<FileDirCommand.DirEntry> list =
                 ((FileDirCommand)msg).getResults();
         list.stream().
-                map(dirEntry -> dirEntry.isDirectory() ?
+                map(dirEntry -> dirEntry.getDirectory() ?
                         "<" + dirEntry.getEntryName() + ">" :
                         dirEntry.getEntryName()).
                 forEach(System.out::println);

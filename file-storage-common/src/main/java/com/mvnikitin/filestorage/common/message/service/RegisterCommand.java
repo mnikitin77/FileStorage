@@ -1,8 +1,5 @@
 package com.mvnikitin.filestorage.common.message.service;
 
-import com.mvnikitin.filestorage.common.message.AbstractNetworkMessage;
-import com.mvnikitin.filestorage.common.message.MessageType;
-
 public class RegisterCommand extends LogonCommand {
 
     public RegisterCommand(String username, int password) {
@@ -10,7 +7,7 @@ public class RegisterCommand extends LogonCommand {
     }
 
     @Override
-    public void dummy() {
-
+    public String info() {
+        return "register a user";
     }
 }

@@ -9,13 +9,10 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.Date;
 
 public class RegisterUserHandler extends ChannelInboundHandlerAdapter {
-
-    private final static SimpleDateFormat DATE_FORMAT
-            = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg)
@@ -25,12 +22,12 @@ public class RegisterUserHandler extends ChannelInboundHandlerAdapter {
 
         try {
             if (cmd instanceof RegisterCommand) {
-                System.out.println("[" + DATE_FORMAT.format(new Date()) + "]: " +
-                        ctx.channel().remoteAddress() +
+                System.out.println("[" +
+                        DateFormat.getDateTimeInstance().format(new Date()) +
+                        "]: " + ctx.channel().remoteAddress() +
                         " command: " + cmd.getClass().getSimpleName());
 
                 ServiceCommandProcessUtils.execute(cmd);
-                cmd.setResultCode(0);
 
                 ctx.writeAndFlush(cmd);
 

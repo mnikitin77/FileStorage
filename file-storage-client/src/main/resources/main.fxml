@@ -1,20 +1,102 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.input.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
 
-<VBox alignment="center" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/10.0.2-internal" fx:controller="com.mvnikitin.filestorage.client.Controller">
-    <HBox VBox.vgrow="ALWAYS">
-        <ListView fx:id="clientFiles" HBox.hgrow="ALWAYS" />
-        <ListView fx:id="serverFiles" HBox.hgrow="ALWAYS" />
-    </HBox>
-    <HBox>
-        <Button maxWidth="Infinity" onAction="#btnClickSelectedClientFile" text="Selected Client File!" HBox.hgrow="ALWAYS" />
-        <Button maxWidth="Infinity" onAction="#btnClickSelectedServerFile" text="Selected Server File!" HBox.hgrow="ALWAYS" />
-    </HBox>
-    <Label fx:id="label" alignment="CENTER" contentDisplay="CENTER" maxWidth="Infinity" style="-fx-background-color: #FFF;" text="..." textAlignment="CENTER">
-      <font>
-         <Font size="18.0" />
-      </font></Label>
+<VBox alignment="TOP_CENTER" minHeight="800.0" minWidth="1200.0" prefHeight="800.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mvnikitin.filestorage.client.Controller">
+    <MenuBar fx:id="menuBar">
+        <menus>
+            <Menu mnemonicParsing="false" text="_File">
+                <items>
+                    <MenuItem fx:id="logoff" mnemonicParsing="false" onAction="#logoff" text="Log OFF">
+                        <accelerator>
+                            <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                        </accelerator>
+                    </MenuItem>
+                    <MenuItem fx:id="exit" mnemonicParsing="false" onAction="#exitApplication" text="Exit">
+                        <accelerator>
+                            <KeyCodeCombination alt="UP" code="Q" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                        </accelerator>
+                    </MenuItem>
+                </items>
+            </Menu>
+            <Menu mnemonicParsing="false" text="_Help">
+                <items>
+                    <MenuItem fx:id="about" mnemonicParsing="false" onAction="#showAbout" text="About" />
+                </items>
+            </Menu>
+        </menus>
+    </MenuBar>
+   <HBox>
+      <children>
+         <HBox prefHeight="35.0" prefWidth="1200.0" spacing="3.0">
+            <children>
+               <Button fx:id="upBtn" minWidth="100.0" mnemonicParsing="false" onAction="#handleUp" onKeyPressed="#handleKeyPressedOnButton" text="Up" />
+               <Button fx:id="openBtn" minWidth="100.0" mnemonicParsing="false" onAction="#handleOpen" onKeyPressed="#handleKeyPressedOnButton" text="Open" />
+               <Button fx:id="newFolderBtn" minWidth="100.0" mnemonicParsing="false" onAction="#handleNew" onKeyPressed="#handleKeyPressedOnButton" text="New Folder" />
+               <Button fx:id="deleteBtn" minWidth="100.0" mnemonicParsing="false" onAction="#handleDelete" onKeyPressed="#handleKeyPressedOnButton" text="Delete">
+                  <HBox.margin>
+                     <Insets />
+                  </HBox.margin>
+               </Button>
+               <Button fx:id="renameBtn" minWidth="100.0" mnemonicParsing="false" onAction="#handleRename" onKeyPressed="#handleKeyPressedOnButton" text="Rename">
+                  <HBox.margin>
+                     <Insets right="50.0" />
+                  </HBox.margin>
+               </Button>
+               <Button fx:id="uploadBtn" minWidth="100.0" mnemonicParsing="false" onAction="#handleUpload" onKeyPressed="#handleKeyPressedOnButton" text="Upload" />
+               <Button fx:id="downloadBtn" minWidth="100.0" mnemonicParsing="false" onAction="#handleDownload" onKeyPressed="#handleKeyPressedOnButton" text="Download" />
+            </children>
+            <padding>
+               <Insets bottom="5.0" left="3.0" right="5.0" top="5.0" />
+            </padding>
+         </HBox>
+         <HBox onKeyPressed="#handleKeyPressedOnButton" prefHeight="32.0" spacing="3.0">
+            <children>
+               <Button fx:id="refreshBtn" alignment="CENTER_RIGHT" contentDisplay="CENTER" minWidth="25.333333333333332" mnemonicParsing="false" onAction="#handleRefresh" prefWidth="25.333333333333332" />
+            </children>
+            <padding>
+               <Insets bottom="5.0" left="3.0" right="5.0" top="5.0" />
+            </padding>
+         </HBox>
+      </children>
+   </HBox>
+   <TableView fx:id="filesTableView" onKeyPressed="#handleKeyPressedOnTableView" onMouseClicked="#handleMouseClickedOnTableView" prefHeight="621.0" prefWidth="1200.0">
+     <columns>
+         <TableColumn fx:id="isFolderCol" prefWidth="75.0" text="Is Folder" visible="false" />
+       <TableColumn fx:id="nameCol" prefWidth="800.0" text="Name" />
+       <TableColumn fx:id="sizeCol" prefWidth="150.0" sortable="false" text="Size" />
+         <TableColumn fx:id="createdCol" prefWidth="120.0" sortable="false" text="Created" />
+         <TableColumn fx:id="modifiedCol" prefWidth="120.0" sortable="false" text="Modified" />
+     </columns>
+   </TableView>
+   <Label fx:id="fileLbl" minWidth="-Infinity" prefWidth="1200.0">
+      <padding>
+         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+      </padding>
+   </Label>
+   <HBox alignment="TOP_RIGHT" prefHeight="37.333333333333336" prefWidth="200.0">
+      <children>
+         <Label minHeight="37.333333333333336" minWidth="100.0" text="Transfer status:">
+            <HBox.margin>
+               <Insets />
+            </HBox.margin>
+            <padding>
+               <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+            </padding>
+         </Label>
+          <Label fx:id="commandStatusLbl" minHeight="37.333333333333336" minWidth="1100.0" prefWidth="1100.0" text="Transfer status: ">
+              <padding>
+                  <Insets bottom="10.0" right="10.0" top="10.0" />
+              </padding>
+          </Label>
+      </children>
+   </HBox>
+   <ProgressBar fx:id="commandProg" prefWidth="1200.0" progress="0.0">
+      <VBox.margin>
+         <Insets left="10.0" right="10.0" />
+      </VBox.margin>
+   </ProgressBar>
 </VBox>

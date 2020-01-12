@@ -12,13 +12,10 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.Date;
 
 public class ServiceMessageHandler extends ChannelInboundHandlerAdapter {
-
-    private final static SimpleDateFormat DATE_FORMAT
-            = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     private ClientSession client;
 
@@ -31,9 +28,9 @@ public class ServiceMessageHandler extends ChannelInboundHandlerAdapter {
         try {
 
             if (cmd.getType() == MessageType.SERVICE) {
-                // TODO - писать потом Username, добавить логгер.
-                System.out.println("[" + DATE_FORMAT.format(new Date()) + "]: " +
-                        ctx.channel().remoteAddress() +
+                System.out.println("[" +
+                        DateFormat.getDateTimeInstance().format(new Date()) +
+                        "]: " + ctx.channel().remoteAddress() +
                         (client != null ? (" [" + client.getUsername() + "]") :
                         "") +
                         " command: " + cmd.getClass().getSimpleName());
@@ -73,8 +70,9 @@ public class ServiceMessageHandler extends ChannelInboundHandlerAdapter {
                 ctx.fireChannelRead(msg);
             } else {
             // The user is not logged on yet.
-                System.out.println("[" + DATE_FORMAT.format(new Date()) + "]: " +
-                        ctx.channel().remoteAddress() +
+                System.out.println("[" +
+                        DateFormat.getDateTimeInstance().format(new Date()) +
+                        "]: " + ctx.channel().remoteAddress() +
                         " command: " + cmd.getClass().getSimpleName());
 
                 clientIsNotLoggedOn(ctx, cmd);

@@ -1,10 +1,10 @@
 package com.mvnikitin.filestorage.client;
 
 import com.mvnikitin.filestorage.client.utils.ClientProperties;
+import com.mvnikitin.filestorage.client.utils.UserNotifier;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
@@ -42,12 +42,10 @@ public class PropertiesController implements Initializable {
             try {
                 ClientProperties.getInstance().saveProperties();
             } catch (IOException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.initOwner(dialogStage);
-                alert.setTitle("Error");
-                alert.setHeaderText("Error when saving settings.");
-                alert.setContentText(e.getMessage());
-                alert.showAndWait();
+                UserNotifier.showErrorMessage("Error",
+                        "Error when saving settings.",
+                        e.getMessage(),
+                        dialogStage);
             }
 
             dialogStage.close();
@@ -72,12 +70,10 @@ public class PropertiesController implements Initializable {
             }
         }
 
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.initOwner(dialogStage);
-        alert.setTitle("Invalid value");
-        alert.setHeaderText("Set a correct value.");
-        alert.setContentText("[Port] parameter must be within 1024 and 65535.");
-        alert.showAndWait();
+        UserNotifier.showErrorMessage("Error",
+                "Invalid value.",
+                "[Port] parameter must be within 1024 and 65535.",
+                dialogStage);
 
         return false;
     }

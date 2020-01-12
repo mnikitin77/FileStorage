@@ -15,7 +15,7 @@ public abstract class AbstractNetworkMessage implements Serializable {
         rqUID = UUID.randomUUID().toString();
     }
 
-    public abstract void dummy(); //TODO
+    public abstract String info();
 
     public MessageType getType() {
         return type;

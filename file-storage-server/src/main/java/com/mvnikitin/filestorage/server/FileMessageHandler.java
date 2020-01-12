@@ -9,13 +9,10 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.Date;
 
 public class FileMessageHandler extends ChannelInboundHandlerAdapter {
-
-    private final static SimpleDateFormat DATE_FORMAT
-            = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     private ClientSession client;
 
@@ -34,16 +31,14 @@ public class FileMessageHandler extends ChannelInboundHandlerAdapter {
             if (message.getType() == MessageType.FILE) {
                 cmd = (FileAbstractCommand) msg;
 
-            // TODO - писать потом Username, добавить логгер.
-                System.out.println("[" + DATE_FORMAT.format(new Date()) + "]: " +
-                        ctx.channel().remoteAddress() +
+                System.out.println("[" +
+                        DateFormat.getDateTimeInstance().format(new Date()) +
+                        "]: " + ctx.channel().remoteAddress() +
                         " [" + client.getUsername() + "] command: " +
                         cmd.getClass().getSimpleName());
 
                 cmd.setIsOnClient(false);
-                FileCommandProcessUtils.execute(
-                        //cmd, ConfigSettings.getInstance().getRootDirectory());
-                        cmd, client);
+                FileCommandProcessUtils.execute(cmd, client);
 
                 ctx.writeAndFlush(cmd);
             }

@@ -10,7 +10,7 @@ public class LogoffCommand extends AbstractNetworkMessage {
     }
 
     @Override
-    public void dummy() {
-
+    public String info() {
+        return "log out of the server";
     }
 }

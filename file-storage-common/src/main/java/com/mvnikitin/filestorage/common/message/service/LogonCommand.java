@@ -24,7 +24,7 @@ public class LogonCommand extends AbstractNetworkMessage {
     }
 
     @Override
-    public void dummy() {
-
+    public String info() {
+        return "log on to the server";
     }
 }

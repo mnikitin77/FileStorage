@@ -19,7 +19,7 @@ public class GetConfigInfoCommand extends AbstractNetworkMessage {
     }
 
     @Override
-    public void dummy() {
-
+    public String info() {
+        return "get the server configuration data";
     }
 }

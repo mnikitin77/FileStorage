@@ -7,7 +7,7 @@ public class NotSupportedCommand extends AbstractNetworkMessage {
     }
 
     @Override
-    public void dummy() {
-
+    public String info() {
+        return "not supported command";
     }
 }

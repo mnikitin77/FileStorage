@@ -7,7 +7,7 @@
 
 <VBox alignment="TOP_CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mvnikitin.filestorage.client.PropertiesController">
    <children>
-      <Label alignment="TOP_LEFT" text="Net memory client settings:">
+      <Label alignment="TOP_LEFT" text="Net Memory client settings:">
          <font>
             <Font size="18.0" />
          </font>

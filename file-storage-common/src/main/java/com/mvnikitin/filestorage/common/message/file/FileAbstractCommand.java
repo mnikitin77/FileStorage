@@ -21,7 +21,7 @@ public abstract class FileAbstractCommand extends AbstractNetworkMessage {
         this.fileName = fileName;
     }
 
-    public abstract void dummy();
+    public abstract String info();
 
     public boolean isOnClient() {
         return isOnClient;

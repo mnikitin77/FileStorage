@@ -39,7 +39,7 @@
       </Label>
       <ImageView fitHeight="394.0" fitWidth="394.0" pickOnBounds="true" preserveRatio="true">
          <image>
-            <Image url="@flash.png" />
+            <Image url="@img/flash.png" />
          </image></ImageView>
       <StackPane prefHeight="150.0" prefWidth="200.0">
          <children>
@@ -93,7 +93,7 @@
                         </VBox>
                      </children>
                   </HBox>
-                  <Button alignment="TOP_CENTER" minWidth="300.0" mnemonicParsing="false" style="-fx-background-color: rgba(0,0,0,0.08),        linear-gradient(#5a61af, #51536d),        linear-gradient(#e4fbff 0%,#cee6fb 10%, #a5d3fb 50%, #88c6fb 51%, #d5faff 100%); -fx-background-insets: 0 0 -1 0,0,1; -fx-background-radius: 5,5,4; -fx-padding: 3 30 3 30; -fx-text-fill: #242d35; -fx-font-size: 18px; -fx-font-family: Helvetica; -fx-font-weight: bold;" text="REGISTER" />
+                  <Button fx:id="registerBtn" alignment="TOP_CENTER" minWidth="300.0" mnemonicParsing="false" onAction="#register" style="-fx-background-color: rgba(0,0,0,0.08),        linear-gradient(#5a61af, #51536d),        linear-gradient(#e4fbff 0%,#cee6fb 10%, #a5d3fb 50%, #88c6fb 51%, #d5faff 100%); -fx-background-insets: 0 0 -1 0,0,1; -fx-background-radius: 5,5,4; -fx-padding: 3 30 3 30; -fx-text-fill: #242d35; -fx-font-size: 18px; -fx-font-family: Helvetica; -fx-font-weight: bold;" text="REGISTER" />
                   <Hyperlink fx:id="back" onAction="#showLogonPanel" text="Back">
                      <font>
                         <Font size="18.0" />
@@ -141,7 +141,7 @@
                         </VBox>
                      </children>
                   </HBox>
-                  <Button alignment="TOP_CENTER" minWidth="300.0" mnemonicParsing="false" style="-fx-background-color: rgba(0,0,0,0.08),        linear-gradient(#5a61af, #51536d),        linear-gradient(#e4fbff 0%,#cee6fb 10%, #a5d3fb 50%, #88c6fb 51%, #d5faff 100%); -fx-background-insets: 0 0 -1 0,0,1; -fx-background-radius: 5,5,4; -fx-padding: 3 30 3 30; -fx-text-fill: #242d35; -fx-font-size: 18px; -fx-font-family: Helvetica; -fx-font-weight: bold;" text="LOGON" />
+                  <Button fx:id="logonBtn" alignment="TOP_CENTER" minWidth="300.0" mnemonicParsing="false" onAction="#logon" style="-fx-background-color: rgba(0,0,0,0.08),        linear-gradient(#5a61af, #51536d),        linear-gradient(#e4fbff 0%,#cee6fb 10%, #a5d3fb 50%, #88c6fb 51%, #d5faff 100%); -fx-background-insets: 0 0 -1 0,0,1; -fx-background-radius: 5,5,4; -fx-padding: 3 30 3 30; -fx-text-fill: #242d35; -fx-font-size: 18px; -fx-font-family: Helvetica; -fx-font-weight: bold;" text="LOGON" />
                   <Hyperlink fx:id="register" onAction="#showRegsiterPanel" text="Register">
                      <font>
                         <Font size="18.0" />

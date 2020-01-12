@@ -17,7 +17,7 @@ public class FileRenameCommand extends FileAbstractCommand {
     }
 
     @Override
-    public void dummy() {
-
+    public String info() {
+        return "rename " + getFileName();
     }
 }
