@@ -17,15 +17,16 @@ is a window application made with JavaFX 2.0  framework. It consists of a single
 Architecture:
 - The Logon / Register scene allows logging on or registering. Navigation among both is implemented by showing \ hiding the corresponding VBox in the StackPane.
 - The Main scene is implemented in a VBox pane and along with the others contains a TableVeiw to show a client's storage content. 
+
 Allowed operations:
-- refresh and display the content of the current folder
-- go to the upper folder (if any)
-- open and show the content of the selected folder
-- create a new folder (editing the name is in the top table line with the TableView edit-mode on)
-- rename a file or a folder is done the same way as creating a new folder - in the table
-- delete a file or a folder
-- download a file from the server
-- upload a file to the server
+-- refresh and display the content of the current folder
+-- go to the upper folder (if any)
+-- open and show the content of the selected folder
+-- create a new folder (editing the name is in the top table line with the TableView edit-mode on)
+-- rename a file or a folder is done the same way as creating a new folder - in the table
+-- delete a file or a folder
+-- download a file from the server
+-- upload a file to the server
 
 ## file-storage-common package
 Contains the common file command classes, interfaces and logic shared by both the server and the client.
@@ -40,5 +41,5 @@ Contains the common file command classes, interfaces and logic shared by both th
 ### 3. Downloading a file
 ![](Pictures/FileStorage_downloading.png)
 
-### 4. Downloading a file
+### 4. Creating a folder
 ![](Pictures/FileStorage_new_folder.png)
