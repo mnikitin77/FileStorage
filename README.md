@@ -11,7 +11,7 @@ The server is implemented on:
 Required files:
 - file-server-users.db3 - Users database, must be located in the CLASSPATH directory
 - config.properties - contains server settings
-- Log4j2.xml - must be put to the src/resources directory to compile
+- Log4j2.xml - must be put in the src/resources directory to compile
 
 ## Client
 is a window application made with JavaFX 2.0  framework. It consists of a single stage (window) and two scenes - logon\register and main. It allows storing server host and port and last logged on username in the filestorage.properties file.
