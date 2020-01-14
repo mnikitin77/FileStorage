@@ -7,6 +7,7 @@ The server is implemented on:
 - netty -to manage client/server network communications
 - SQLite database (file-server-users.db3) and SQLite JDBC driver to manage usernames
 - Log4j2 for logging
+
 Required files:
 - file-server-users.db3 - Users database, must be located in the CLASSPATH directory
 - config.properties - contains server settings
