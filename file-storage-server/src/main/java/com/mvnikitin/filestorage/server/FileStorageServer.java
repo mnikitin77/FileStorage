@@ -1,5 +1,6 @@
 package com.mvnikitin.filestorage.server;
 
+import com.mvnikitin.filestorage.server.service.ConfigSettings;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -12,7 +13,13 @@ import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class FileStorageServer {
+
+    private static final Logger logger =
+            LogManager.getLogger(FileStorageServer.class.getName());
 
     private static int maxMessageSize;
     private static int port;
@@ -33,23 +40,36 @@ public class FileStorageServer {
                                             maxMessageSize,
                                             ClassResolvers.cacheDisabled(null)),
                                     new ObjectEncoder(),
-                                    new MessageHandler()
+                                    new ClientConfigHandler(),
+                                    new RegisterUserHandler(),
+                                    new ServiceMessageHandler()
+                            // FileMessageHandler is added to the
+                            // pipeline in ServiceMessagehandler.channelRead().
                             );
                         }
                     })
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
+
+            logger.info("FileStorage server is started.");
+
             ChannelFuture future =
                     b.bind(port).sync();
             future.channel().closeFuture().sync();
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
+
+            logger.info("FileStorage server is shut down.");
+
+        // Clean local application resources
+            ConfigSettings.getInstance().clearResources();
         }
     }
 
     public static void main(String[] args) throws Exception {
+        ConfigSettings cfg = ConfigSettings.getInstance();
         maxMessageSize = 1024 * 1024 *
-                ConfigSettings.getInstance().getMaxTransferFileSizeMB();
+                cfg.getMaxTransferFileSizeMB();
         try {
             if (args.length > 0) {
                 port = Integer.parseInt(args[0]);
@@ -60,8 +80,10 @@ public class FileStorageServer {
                 port = ConfigSettings.getInstance().getPort();
             }
         } catch (Exception e) {
-            throw new RuntimeException("Invalid port number. " +
-                    "The port must be in the range between 1024 and 65535");
+            String errorMessage = "Invalid port number. " +
+                    "The port must be in the range between 1024 and 65535";
+            logger.error(errorMessage);
+            throw new RuntimeException(errorMessage);
         }
 
         new FileStorageServer().run();

@@ -54,6 +54,7 @@ public class FileInfoCommand extends FileAbstractCommand {
     }
 
     @Override
-    public void dummy() {
+    public String info() {
+        return "get the information for " + getFileName();
     }
 }

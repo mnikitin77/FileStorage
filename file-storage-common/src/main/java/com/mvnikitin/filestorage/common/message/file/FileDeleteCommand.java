@@ -2,7 +2,6 @@ package com.mvnikitin.filestorage.common.message.file;
 
 public class FileDeleteCommand extends FileAbstractCommand {
 
-    private String fileName;
     private boolean isDeleted;
 
     public FileDeleteCommand(String fileName) {
@@ -19,7 +18,7 @@ public class FileDeleteCommand extends FileAbstractCommand {
     }
 
     @Override
-    public void dummy() {
-
+    public String info() {
+        return "delete " + getFileName();
     }
 }

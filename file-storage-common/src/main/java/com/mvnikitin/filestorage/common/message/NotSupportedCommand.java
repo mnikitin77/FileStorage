@@ -2,8 +2,12 @@ package com.mvnikitin.filestorage.common.message;
 
 public class NotSupportedCommand extends AbstractNetworkMessage {
 
-    @Override
-    public void dummy() {
+    public NotSupportedCommand() {
+        super(MessageType.SERVICE);
+    }
 
+    @Override
+    public String info() {
+        return "not supported command";
     }
 }

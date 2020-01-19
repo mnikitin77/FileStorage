@@ -1,37 +1,46 @@
 # FileStorage
-My GeekBrains course project. It is a simple network client-server file storage based on the Netty framework.
+is an example client-server project I've done as a Java course project assignment. It consists of a file storage on the server side which allows the registered clients to store and manage files and folders and a desktop client UI application to manage the storage. The client-server data exchange is implemented upon the netty framework. The business commands and data are transferred using the standard java serialization.
 
-# Сетевое хранилище на Java
+## Server
+manages a remote file storage for registered users allowing users uploading and downloading files, as well as creating folders, going into folders and out, removing and renaming files and folders.
+The server is implemented on:
+- netty -to manage client/server network communications
+- SQLite database (file-server-users.db3) and SQLite JDBC driver to manage usernames
+- Log4j2 for logging
 
-Приложение имеет клиент-серверную архитектуру.
-Ни в коем случае не используем: Java EE, Spring.
+Required files:
+- file-server-users.db3 - Users database, must be located in the CLASSPATH directory
+- config.properties - contains server settings
+- Log4j2.xml - must be put in the src/resources directory to compile
 
-## Основной функционал:
-1. Регистрация и аутентификация на сервере
-2. Передача файлов с клиента на сервер, скачивание файлов с сервера
-3. Просмотр списка файлов на сервере
-4. Переименование, удаление файлов на сервере
-5. Файлы хранятся на сервере в папках, названия которых
-соответствуют логину пользователя
+## Client
+is a window application made with JavaFX 2.0  framework. It consists of a single stage (window) and two scenes - logon\register and main. It allows storing server host and port and last logged on username in the filestorage.properties file.
+Architecture:
+- The Logon / Register scene allows logging on or registering. Navigation among both is implemented by showing \ hiding the corresponding VBox in the StackPane.
+- The Main scene is implemented in a VBox pane and along with the others contains a TableVeiw to show a client's storage content. 
 
-## Основные вопросы (ответить на них в ДЗ!!!):
-1. Как вы собираетесь передавать файлы?
-Поток байт (свой протокол), Сериализация
-2. Нужно ли передавать что-то кроме файлов?
-Передаем файлы, команды, ?
-3. Как передавать файлы/команды по одному сетевому соединению? 
-Или открываем несколько соединений?
-4. Нужна ли нам база данных, если да, то зачем?
-5. Клиент: консоль, GUI (Swing, JavaFX)
+Allowed operations:
+- refresh and display the content of the current folder
+- go to the upper folder (if any)
+- open and show the content of the selected folder
+- create a new folder (editing the name is in the top table line with the TableView edit-mode on)
+- rename a file or a folder is done the same way as creating a new folder - in the table
+- delete a file or a folder
+- download a file from the server
+- upload a file to the server
 
-## Чего не стоит делать на первом этапе:
-1. Вложенные папки
-2. Синхронизация папок на сервере/клиенте
-3. Шифрование/сжатие данных при передаче
-4. Подсчет контрольной суммы
-5. Параллельная передача файлов
-6. Докачка файлов
-7. Sharing файлов
+## file-storage-common package
+Contains the common file command classes, interfaces and logic shared by both the server and the client.
 
-## Можно не отвечать:
-1. Какую библиотеку использовать? (java.io, java.nio, Netty)
+## Pictures
+### 1. Logon form
+![](Pictures/FileStorage_logon.png)
+
+### 2. Register form
+![](Pictures/FileStorage_register.png)
+
+### 3. Downloading a file
+![](Pictures/FileStorage_downloading.png)
+
+### 4. Creating a folder
+![](Pictures/FileStorage_new_folder.png)

@@ -1,2 +1,7 @@
 /.idea/
+/target/
+/logs/
+/client_storage/
+/server_storage/
+/file-storage-client/src/main/java/com/mvnikitin/filestorage/client/TestClient.java
 *.iml

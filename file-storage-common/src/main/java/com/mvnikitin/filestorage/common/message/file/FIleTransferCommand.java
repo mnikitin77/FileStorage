@@ -59,7 +59,7 @@ public class FIleTransferCommand extends FileAbstractCommand {
     }
 
     @Override
-    public void dummy() {
-
+    public String info() {
+        return "transfer the file " + getFileName();
     }
 }

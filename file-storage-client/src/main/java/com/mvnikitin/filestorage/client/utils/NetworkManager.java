@@ -14,15 +14,11 @@ public class NetworkManager {
     private static ObjectEncoderOutputStream out;
     private static ObjectDecoderInputStream in;
 
-    public static void start(String host, int port) {
-        try {
-            socket = new Socket(host, port);
-            out = new ObjectEncoderOutputStream(socket.getOutputStream());
-            in = new ObjectDecoderInputStream(socket.getInputStream(),
-                    MAX_OBJ_SIZE_MB * 1024 * 1024);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public static void start(String host, int port) throws IOException {
+        socket = new Socket(host, port);
+        out = new ObjectEncoderOutputStream(socket.getOutputStream());
+        in = new ObjectDecoderInputStream(socket.getInputStream(),
+                MAX_OBJ_SIZE_MB * 1024 * 1024);
     }
 
     public static void stop() {
